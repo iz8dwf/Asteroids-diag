@@ -1,6 +1,6 @@
 ; Atari Asteroids RAM diag
 ; (when built-in diags can't find any clue)
-; Rev 0.1a
+; Rev 0.2a
 ; Very quick and effective check, but can identify
 ; only one defective IC (the first one found bad).
 ; Must be used only if the built-in diagnostics
@@ -38,42 +38,64 @@ reset
 	SEI
 	CLD
 	LDX #$00
-zerop	LDA $7C00,X
+firstp	LDA $7C00,X
 	STA $00,X
-	INX
-	BNE zerop
-stack	LDA $7D00,X
+	LDA $7D00,X
 	STA $0100,X
-	INX
-	BNE stack
-pag2	LDA $7E00,X
+	LDA $7E00,X
 	STA $0200,X
-	INX
-	BNE pag2
-pag3	LDA $7F00,X
+	LDA $7F00,X
 	STA $0300,X
 	INX
-	BNE pag3
-zptst	LDA $00,X
+	BNE firstp
+fptst	LDA $00,X
 	CMP $7C00,X
 	BNE zperr
-	INX
-	BNE zptst
-sttst	LDA $0100,X
+	LDA $0100,X
 	CMP $7D00,X
 	BNE sterr
-	INX
-	BNE sttst
-p2tst	LDA $0200,X
+	LDA $0200,X
 	CMP $7E00,X
 	BNE p2err
-	INX
-	BNE p2tst
-p3tst	LDA $0300,X
+	LDA $0300,X
 	CMP $7F00,X
 	BNE p3err
 	INX
-	BNE p3tst
+	BNE fptst
+; try again with complemented data
+
+secp	LDA $7C00,X
+	EOR #$FF
+	STA $00,X
+	LDA $7D00,X
+	EOR #$FF
+	STA $0100,X
+	LDA $7E00,X
+	EOR #$FF
+	STA $0200,X
+	LDA $7F00,X
+	EOR #$FF
+	STA $0300,X
+	INX
+	BNE secp
+sptst	LDA $00,X
+	EOR #$FF
+	CMP $7C00,X
+	BNE zperr
+	LDA $0100,X
+	EOR #$FF
+	CMP $7D00,X
+	BNE sterr
+	LDA $0200,X
+	EOR #$FF
+	CMP $7E00,X
+	BNE p2err
+	LDA $0300,X
+	EOR #$FF
+	CMP $7F00,X
+	BNE p3err
+	INX
+	BNE sptst
 ; if we reach here, main RAM is likely good!
 	JMP vectest
 
@@ -175,8 +197,12 @@ vectest
 	LDX #$FF
 	TXS
 ; we then use $00,$01 as pointer for vector memory to be tested
+; $02 = last page
+; $03 = 0 or $FF for true or negated bits of random data
+	
 	LDA #$00
-	STA $00
+	STA $03		; first pass with random data
+vecram	STA $00
 	LDA #$40	; first kilobyte at $4000 to $43FF
 	STA $01
 	LDA #$44
@@ -187,7 +213,14 @@ vectest
 	LDA #$48
 	STA $02
 	JSR test1k
-	JMP reset	; loop forever
+	LDA $03
+	CMP #$FF
+	BEQ rst
+	EOR #$FF
+	STA $03
+	EOR #$FF
+	jmp vecram
+rst	JMP reset	; loop forever
 test1k
 	LDY #$00
 	STY $10		; random data in our eprom
@@ -197,6 +230,7 @@ test1k
 	STA $12
 copy
 	LDA ($10),Y
+	EOR $03		; optional inversion
 	STA ($00),Y
 	INY
 	BNE copy
@@ -211,6 +245,7 @@ copy
 	STA $11
 vfy	
 	LDA ($10),Y
+	EOR $03
 	CMP ($00),Y
 	BNE vrerr
 	INY
