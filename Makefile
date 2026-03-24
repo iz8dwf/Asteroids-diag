@@ -1,6 +1,13 @@
-f8-diag: f8-diag.asm
-	xa -c -C  f8-diag.asm  -o f8-diag
+diagram: diagram.asm
+	xa -c -C  diagram.asm  -o diagram
 	
-eprom: f8-diag
-	rm -f eprom
-	cat f8-diag rand_rst >> eprom
+diagvec: diagvec.asm
+	xa -c -C  diagvec.asm  -o diagvec
+
+eprom-dram: diagram
+	rm -f eprom-dram
+	cat diagram rand_rst >> eprom-dram
+
+eprom-dvec: diagvec
+	rm -f eprom-dvec
+	cat diagvec >> eprom-dvec
