@@ -229,6 +229,6 @@ endofcode
 ; fills the unused space with $FF 
 	* = $7FFC
 .dsb (*-endofcode), $FF
-;
-;random
+
+; reset vector
 .byt $00,$78,$00,$78
