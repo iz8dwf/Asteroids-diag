@@ -4,10 +4,9 @@ diagram: diagram.asm
 diagvec: diagvec.asm
 	xa -c -C  diagvec.asm  -o diagvec
 
+asterock: asterock1k.asm
+	xa -c -C  asterock1k.asm  -o asterock
+
 eprom-dram: diagram
 	rm -f eprom-dram
 	cat diagram rand_rst >> eprom-dram
-
-eprom-dvec: diagvec
-	rm -f eprom-dvec
-	cat diagvec >> eprom-dvec
