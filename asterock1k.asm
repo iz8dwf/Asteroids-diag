@@ -74,50 +74,48 @@ intcy
 	TYA
 cpuram: STX $3400	; clear watchdog
 	LDX #$00
-pag0:	STA $00,X
 	CLC
+pag0:	STA $00,X
 	ADC #$2F
 	INX
 	BNE pag0
 pag1:	STA $0100,X
-	CLC
 	ADC #$2F
 	INX
 	BNE pag1
 pag2:	STA $0200,X
-	CLC
 	ADC #$2F
 	INX
 	BNE pag2
 pag3:	STA $0300,X
-	CLC
 	ADC #$2F
 	INX
 	BNE pag3
 
 	STX $3400	; clear watchdog
-	TYA		; let's read back now
-cp0:	CMP $00,X
-	BNE err0
 	CLC
+	TYA		; let's read back now
+cp0:	EOR $00,X
+	BNE mramerr
+	LDA $00,X
 	ADC #$2F
 	INX
 	BNE cp0
-cp1:	CMP $0100,X
-	BNE err1
-	CLC
+cp1:	EOR $0100,X
+	BNE mramerr
+	LDA $0100,X
 	ADC #$2F
 	INX
 	BNE cp1
-cp2:	CMP $0200,X
-	BNE err2
-	CLC
+cp2:	EOR $0200,X
+	BNE mramerr
+	LDA $0200,X
 	ADC #$2F
 	INX
 	BNE cp2
-cp3:	CMP $0300,X
-	BNE err3
-	CLC
+cp3:	EOR $0300,X
+	BNE mramerr
+	LDA $0300,X
 	ADC #$2F
 	INX
 	BNE cp3
@@ -129,13 +127,6 @@ cp3:	CMP $0300,X
 
 	JMP vramtst	; if we get here, main ram is likely good.
 
-err0:	EOR $00,X
-	BNE mramerr
-err1:	EOR $0100,X
-	BNE mramerr
-err2:	EOR $0200,X
-	BNE mramerr
-err3:	EOR $0300,X
 mramerr
 	TAX
 	LDA #$02
@@ -179,7 +170,7 @@ vramtst
 	TXS
 ; we then use $00,$01 as pointer for vector memory to be tested
 ; $02 = last page, $03 = start value
-; #$11 = start page saved
+; $11 = start page saved
 	LDA #$00
 	STA $00
 	LDA #$01	; we try with different start values
@@ -199,7 +190,6 @@ vramtst
 	JMP chkhlt	; if all RAM looks good, loop forever on DVG's HALT
 
 vramerr
-	EOR ($00),Y
 	TAX
 	LDA #$04	; low nibble fist 1K 
 	CPX #$0F
@@ -215,9 +205,9 @@ test1k
 	STA $11		; save starting page
 	LDY #$00
 exlop:	LDA $03
+	CLC
 	STX $3400	; clear watchdog
 inlop:	STA ($00),Y
-	CLC
 	ADC #$2F
 	INY
 	BNE inlop
@@ -229,9 +219,10 @@ inlop:	STA ($00),Y
 	LDA $11
 	STA $01
 	LDA $03
-cklop:	CMP ($00),Y
-	BNE vramerr
 	CLC
+cklop:	EOR ($00),Y
+	BNE vramerr
+	LDA ($00),Y
 	ADC #$2F
 	INY
 	BNE cklop
