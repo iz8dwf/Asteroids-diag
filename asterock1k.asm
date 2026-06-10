@@ -40,7 +40,7 @@
 ; The test switch must be ON otherwise the board
 ; generates NMI at regular intervals and we aren't prepared for them.
 
-; define length of morse dit and dash, the lower nibble sets the "thump frequency", D4 must always be 1.
+; define length of dit and dash, the lower nibble sets the "thump frequency", D4 must always be 1.
 dit = $57
 dah = $B0
 
