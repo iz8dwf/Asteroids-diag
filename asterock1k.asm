@@ -180,7 +180,7 @@ vramtst
  	LDA #$40        ; first kilobyte at $4000 to $43FF
         STA $01
 	JSR test1k
-	LDA #$01	; we try with different start values
+	LDA #$01	; restore the first start value
 	STA $03
         LDA #$48
         STA $02
